@@ -65,3 +65,6 @@ class NeuralNetwork:
                 y_hat = self.net(X)
                 metric.add(accuracy(y_hat, y), y.numel())
         return metric[0] / metric[1]
+
+
+

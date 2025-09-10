@@ -12,6 +12,15 @@ def relu(X):
 def cross_entropy(y_hat, y):
     return - torch.log(y_hat[range(len(y_hat)), y])
 
+def evaluate_loss(net, data_iter, loss):   #平均损失函数
+    metric = Accumulator(2)
+    for X, y in data_iter:
+        out = net(X)
+        y = y.reshape(out.shape)
+        l = loss(out, y)
+        metric.add(l.sum(), l.numel())
+    return metric[0] / metric[1]
+
 def accuracy(y_hat, y):
     if len(y_hat.shape) > 1 and y_hat.shape[1] > 1:
         y_hat = y_hat.argmax(axis=1)
@@ -36,4 +45,7 @@ def evaluate_accuracy(net, data_iter):
             X, y = X.to(device), y.to(device)
             metric.add(accuracy(net(X), y), y.numel())
     return metric[0] / metric[1]
+
+
+
 
