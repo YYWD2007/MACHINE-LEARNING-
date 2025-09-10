@@ -4,6 +4,7 @@ import torch
 import sys
 from d2l import torch as d2l
 from torch import nn
+import matplotlib.pyplot as plt
 
 sys.path.append("/home/yuanzhenyutian/Machine_Learning/Deep_Learning_PyTorch")
 from common import *
@@ -33,33 +34,25 @@ print(features[:2], poly_features[:2, :], labels[:2])
 def evaluate_l(net, data_iter, loss):
     return evaluate_loss(net, data_iter, loss)
 
-def net(self, X):
-    X = X.reshape(-1, self.num_inputs)
-    H = relu(X @ self.params["W1"] + self.params["b1"])
-    X2 = H @ self.params["W2"] + self.params["b2"]
-    H2 = relu(X2)
-    X3 = H2 @ self.params["W3"] + self.params["b3"]
 
-    return X3
-    
-def updater(self, batch_size, lr = 0.1):
-    return d2l.sgd([self.params["W1"], self.params["b1"], self.params["W2"], self.params["b2"], self.params["W3"], self.params["b3"]], lr, batch_size)
-
-def train_epoch_ch3(self, train_iter, loss=nn.CrossEntropyLoss(reduction="none")):
-    metric = Accumulator(3)
+def train_epoch_ch3(net, train_iter, loss_fn, updater):
+    """训练一个 epoch"""
+    net.train()
+    total_loss, total_samples, total_correct = 0.0, 0, 0
     for X, y in train_iter:
-        X, y = X.to(device), y.to(device)
-        y_hat = self.net(X)
-        l = loss(y_hat, y)
-        if isinstance(self.updater, torch.optim.Optimizer):
-            self.updater.zero_grad()
+        y_hat = net(X)
+        l = loss_fn(y_hat, y)
+        if isinstance(updater, torch.optim.Optimizer):
+            updater.zero_grad()
             l.mean().backward()
-            self.updater.step()
+            updater.step()
         else:
             l.sum().backward()
-            self.updater(X.shape[0])
-        metric.add(float(l.sum()), accuracy(y_hat, y), y.numel())
-    return metric[0] / metric[2], metric[1] / metric[2]
+            updater(X.shape[0])
+        total_loss += l.sum().item()
+        total_samples += y.numel()
+        total_correct += (y_hat.argmax(dim=1) == y).sum().item()
+    return total_loss / total_samples, total_correct / total_samples
 
 def train(train_features, test_features, train_labels, test_labels,
           num_epochs=400):
@@ -77,14 +70,23 @@ def train(train_features, test_features, train_labels, test_labels,
                             xlim=[1, num_epochs], ylim=[1e-3, 1e2],
                             legend=['train', 'test'])
     for epoch in range(num_epochs):
-        d2l.train_ch3(net, train_iter, loss, trainer)
+        train_epoch_ch3(net, train_iter, loss, trainer)
         if epoch == 0 or (epoch + 1) % 20 == 0:
             animator.add(epoch + 1, (evaluate_loss(net, train_iter, loss),
                                      evaluate_loss(net, test_iter, loss)))
+    animator.fig.show()
+    plt.show()
     print('weight:', net[0].weight.data.numpy())
 
-# 从多项式特征中选择前4个维度，即1,x,x^2/2!,x^3/3!
+# 从多项式特征中选择前4个维度，即1,x,x^2/2!,x^3/3!(正常)
 train(poly_features[:n_train, :4], poly_features[n_train:, :4],
       labels[:n_train], labels[n_train:])
     
+#线性函数拟合（欠拟合）
+#高阶多项式函数拟合（过拟合）
+
+
+
+
+
 
