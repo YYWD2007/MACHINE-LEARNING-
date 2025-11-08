@@ -6,4 +6,4 @@ net = LeNet(kernel_size=5, kernel_size_pool=2, padding=0, stride=2,
 lr = 1
 num_epochs = 10
 train_iter, test_iter = d2l.load_data_fashion_mnist(batch_size=256)
-print(net.train_pred_model(train_iter, test_iter, num_epochs, lr))
+print(net.train_pred_model(train_iter, test_iter, num_epochs, lr)) #
